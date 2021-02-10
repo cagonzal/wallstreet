@@ -5,14 +5,17 @@ import pandas as pd
 
 def expirationsOfInterest(tick,minDays,maxDays):
     
-    p = Put(tick)
+    putOption = Put(tick)
     
-    expirations = p.expirations
+    allExpirations = putOption.expirations
+    print('List of all expirations\n')
+    print(allExpirations)
+    print('\n')
     validExpirations = []
     minDaysTillExpiration = 15
     maxDaysTillExpiration = 45
     
-    for expDate in expirations:
+    for expDate in allExpirations:
     
         expir = expDate.split('-')
         day = int(expir[0])
@@ -31,17 +34,38 @@ def putCreditSpread(tick,minDays,maxDays,strikeSpread,minPoP):
     
     s = Stock(tick)
     stockPrice = s.price
-    expirations = expirationsOfInterest(tick,minDays,maxDays)
-    my_columns = ['Expiry','PoP','Premium','Long Strike','Short Strike']
-    spread_dataframe = pd.DataFrame(columns = my_columns)
+    validExpirations = expirationsOfInterest(tick,minDays,maxDays)
     
-    for expDate in expirations[:1]:
+    print('List of valid expirations:\n')
+    print(validExpirations)
+    print('\n')
+    my_columns = ['Expiry','PoP','Premium','Long Strike','Short Strike']
+    #spread_dataframe = pd.DataFrame(columns = my_columns)
+    
+    frames = []
+    for expDate in validExpirations[:2]:
+        
+        print('Current expiration being analyzed\n')
+        print(expDate)
         expir =  expDate.split('-')
         day = int(expir[0])
         month = int(expir[1])
         year = int(expir[2])
         
+        if day == 3:
+            blah = 5
+            
         temp = Put(tick, d=day, m=month, y=year)
+        
+        spread_dataframe = pd.DataFrame(columns = my_columns)
+        strikes = []
+        strike1 = []
+        strike2 = []
+        longStrike = []
+        shortStrike = []
+        longPremium = []
+        shortPremium = []
+        
         strikes = (temp.strikes)
         
         strikes = [strike for strike in strikes if (strike / stockPrice > 1-strikeSpread  and strike / stockPrice < 1+strikeSpread)]
@@ -49,10 +73,7 @@ def putCreditSpread(tick,minDays,maxDays,strikeSpread,minPoP):
         strike1 = [a for (a,b) in itertools.product(strikes,strikes)]
         strike2 = [b for (a,b) in itertools.product(strikes,strikes)]
         
-        longStrike = []
-        shortStrike = []
-        longPremium = []
-        shortPremium = []
+        
         
         for i in range(0,len(strike1)):
             if strike1[i] < strike2[i]:
@@ -100,25 +121,37 @@ def putCreditSpread(tick,minDays,maxDays,strikeSpread,minPoP):
                 ignore_index = True
                 )
             
+        frames.append(spread_dataframe)
+        
+    result = pd.concat(frames)
+            
     spread_dataframe.sort_values('PoP', ascending = False, inplace = True)
     spread_dataframe.reset_index(drop = True, inplace = True)
     spread_dataframe = spread_dataframe[spread_dataframe['PoP'] >= minPoP]
     
-    return spread_dataframe
+    result.sort_values('PoP', ascending = False, inplace = True)
+    result.reset_index(drop = True, inplace = True)
+    result = result[spread_dataframe['PoP'] >= minPoP]
+    
+    return result
     
 #%%
 
-tick = 'PLTR'
+tick = 'AMD'
 minDays= 15
 maxDays = 45
-strikeSpread = 0.2
+strikeSpread = 0.2 # percentage to vary around underlying stock price 
 minPoP = 60
+
+#%%
+
 spread_dataframe = putCreditSpread(tick, minDays, maxDays, strikeSpread, minPoP)
 
 #%%
 s = Stock(tick)
 stockPrice = s.price
-print(f'Credit Spread Table for {tick} at the current trading price of ${stockPrice}')
+
+print(f'Credit Spread Table for {tick} at the current trading price of {stockPrice}')
 print(spread_dataframe)
 
 
