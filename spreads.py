@@ -43,7 +43,7 @@ def putCreditSpread(tick,minDays,maxDays,strikeSpread,minPoP):
     #spread_dataframe = pd.DataFrame(columns = my_columns)
     
     frames = []
-    for expDate in validExpirations[:2]:
+    for expDate in validExpirations[:1]:
         
         print('Current expiration being analyzed\n')
         print(expDate)
@@ -54,7 +54,10 @@ def putCreditSpread(tick,minDays,maxDays,strikeSpread,minPoP):
         
         if day == 3:
             blah = 5
-            
+        
+        day = 5
+        month = 3
+        year = 2021
         temp = Put(tick, d=day, m=month, y=year)
         
         spread_dataframe = pd.DataFrame(columns = my_columns)
@@ -137,7 +140,7 @@ def putCreditSpread(tick,minDays,maxDays,strikeSpread,minPoP):
     
 #%%
 
-tick = 'AMD'
+tick = 'PLTR'
 minDays= 15
 maxDays = 45
 strikeSpread = 0.2 # percentage to vary around underlying stock price 
@@ -154,13 +157,3 @@ stockPrice = s.price
 print(f'Credit Spread Table for {tick} at the current trading price of {stockPrice}')
 print(spread_dataframe)
 
-
-
-#%%        
-        
-#spread_dataframe = spread_dataframe[:50]
-#spread_dataframe.reset_index(drop = True, inplace = True)
-
-
-    
-    
